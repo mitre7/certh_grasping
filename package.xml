@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+	<name>certh_grasping</name>
+	<version>0.0.0</version>
+  	<description>Spring grasping</description>
+
+	<maintainer email="mitre@iti.gr">Giorgos Mitrentsis</maintainer>
+	<license>BSD</license>
+
+	<buildtool_depend>catkin</buildtool_depend>
+
+        <depend>moveit_core</depend>
+        <depend>moveit_ros_planning_interface</depend>
+        <depend>moveit_msgs</depend>
+        <depend>moveit_visual_tools</depend>
+        <depend>moveit_ros_move_group</depend>
+
+        <depend>cvx_util</depend> -->
+<!--	<build_depend>camera_helpers</build_depend> -->
+        <depend>clopema_robot</depend>
+	<depend>robot_helpers</depend>
+	<depend>spring_detector</depend>
+	
+
+<!--	<run_depend>camera_helpers</run_depend> -->
+
+</package>
