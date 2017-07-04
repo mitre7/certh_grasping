@@ -41,12 +41,6 @@ include_directories(
 
 ADD_DEFINITIONS( -std=c++11 )
 
-add_library(certh_grasping_lib
-        src/certh_grasping.cpp
-)
-target_link_libraries(certh_grasping_lib ${catkin_LIBRARIES})
-add_dependencies(certh_grasping_lib ${PROJECT_NAME}_gencpp)
-
-add_executable(test_grasping test/test_grasping.cpp)
+add_executable(test_grasping test/test_grasping.cpp src/certh_grasping.cpp)
 target_link_libraries(test_grasping ${catkin_LIBRARIES})
 

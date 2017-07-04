@@ -30,12 +30,12 @@ int main (int argc, char *argv[])
         Quaterniond q = robot_helpers::lookAt(Vector3d(0, 0, -1), 0);
 
         RobotArm::Plan plan ;
-        if ( !arm.planTipIK(Eigen::Vector3d(object_position_world(0), object_position_world(1), object_position_world(2) + cg.height_offset), q, plan) ) {
-            cerr << "can't plan to location:" << Vector3d(object_position_world(0), object_position_world(1), object_position_world(2) + cg.height_offset).adjoint() << endl ;
+        if ( !arm.planTipIK(Eigen::Vector3d(spring_position_world(0), spring_position_world(1), spring_position_world(2) + cg.height_offset), q, plan) ) {
+            cerr << "can't plan to location:" << Vector3d(spring_position_world(0), spring_position_world(1), spring_position_world(2) + cg.height_offset).adjoint() << endl ;
         }
         else {
             if ( arm.execute(plan) ) {
-                cout << "moving to: " << Eigen::Vector3d(object_position_world(0), object_position_world(1), object_position_world(2) + cg.height_offset).adjoint() << endl  ;
+                cout << "moving to: " << Eigen::Vector3d(spring_position_world(0), spring_position_world(1), spring_position_world(2) + cg.height_offset).adjoint() << endl  ;
                 cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl  ;
             }
         }
