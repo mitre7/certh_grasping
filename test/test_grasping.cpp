@@ -23,7 +23,9 @@ int main (int argc, char *argv[])
 
     for (uint i=0; i</*cg.spring_list.size()*/ 1; i++)
     {
+        cg.detectSprings();
         cv::Point centroid = cg.calculateSpringCenter(cg.spring_list[i]);
+        cout << "x = " << centroid.x << ", y = " << centroid.y << endl;
         Vector3f spring_position_world = cg.calculateWorldCoordinates(centroid);
         cout << "World Coordinates: " << spring_position_world << endl;
 

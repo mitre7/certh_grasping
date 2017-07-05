@@ -15,6 +15,11 @@ void CerthGrasping::detectSprings()
 
     spring_detector::springDetect srv;
 
+    spring_list.clear();
+    spring_points.clear();
+    rotY.clear();
+    rotZ.clear();
+
     if (detect_spring_client.call(srv))
     {
         for (uint m=0; m<srv.response.spring_msg.springs.size(); m++)
@@ -29,7 +34,7 @@ void CerthGrasping::detectSprings()
             rotY.push_back(srv.response.spring_msg.springs[m].phi);
             rotZ.push_back(srv.response.spring_msg.springs[m].theta);
             spring_list.push_back(spring_points);
-            spring_list.clear();
+            spring_points.clear();
         }
     }
 }
@@ -37,7 +42,8 @@ void CerthGrasping::detectSprings()
 cv::Point CerthGrasping::calculateSpringCenter(std::vector<cv::Point> &spring_points)
 {
     cv::Point centroid;
-    uint temp_x, temp_y;
+    int temp_x = 0;
+    int temp_y = 0;
     for (uint i=0; i<spring_points.size(); i++)
     {
         temp_x += spring_points[i].x;

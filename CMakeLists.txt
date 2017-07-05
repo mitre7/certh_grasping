@@ -20,8 +20,6 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
     INCLUDE_DIRS
         include
-    LIBRARIES
-        certh_grasping_lib
     CATKIN_DEPENDS
         moveit_core
         moveit_ros_planning_interface

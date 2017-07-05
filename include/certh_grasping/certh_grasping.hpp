@@ -24,7 +24,7 @@ public:
     CerthGrasping()
     : resize_ratio(0.75)
     , tray_height(0.53)
-    , height_offset(0.05)
+    , height_offset(0.00)
     {
         camera_matrix << -0.0912497 ,    0.995828 , -0.000231745 ,   0.0991083,
                            0.995505 ,   0.0912141 ,   -0.0254834 ,    -1.15709,
