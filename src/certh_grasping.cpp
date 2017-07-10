@@ -15,11 +15,6 @@ void CerthGrasping::detectSprings()
 
     spring_detector::springDetect srv;
 
-    spring_list.clear();
-    spring_points.clear();
-    rotY.clear();
-    rotZ.clear();
-
     if (detect_spring_client.call(srv))
     {
         for (uint m=0; m<srv.response.spring_msg.springs.size(); m++)
@@ -56,7 +51,7 @@ cv::Point CerthGrasping::calculateSpringCenter(std::vector<cv::Point> &spring_po
 
 Vector3f CerthGrasping::calculateWorldCoordinates(cv::Point centroid)
 {
-    cvx::util::PinholeCamera cam(9908.44, 9887.03, 2464, 1632, cv::Size(4928, 3264));
+    cvx::util::PinholeCamera cam(10179.87, 10154.06, 2464, 1632, cv::Size(4928, 3264));
     Vector3f object_position_temp = cam.backProject(centroid.x, centroid.y, camera_matrix(2,3) - tray_height);
     Vector4f object_position_camera(object_position_temp.x(), object_position_temp.y(), object_position_temp.z(), 1);
     Vector4f object_position_world = camera_matrix * object_position_camera;
@@ -64,6 +59,12 @@ Vector3f CerthGrasping::calculateWorldCoordinates(cv::Point centroid)
     return Vector3f(object_position_world(0), object_position_world(1), object_position_world(2));
 }
 
+void CerthGrasping::calculateGripperPosition(Vector3f &gripper_position, Vector3f spring_position, float gripper_angle)
+{
+    gripper_position.x() = spring_position.x() - grasp_offset * cos(gripper_angle);
+    gripper_position.y() = spring_position.y() - grasp_offset * sin(gripper_angle);
+    gripper_position.z() = spring_position.z();
+}
 
 
 
