@@ -26,8 +26,8 @@ void CerthGrasping::detectSprings()
                 pt.y = srv.response.spring_msg.springs[m].points[n].y / resize_ratio;
                 spring_points.push_back(pt);
             }
-            rotY.push_back(srv.response.spring_msg.springs[m].phi);
-            rotZ.push_back(srv.response.spring_msg.springs[m].theta);
+            rotX.push_back(srv.response.spring_msg.springs[m].phi);
+            rotY.push_back(srv.response.spring_msg.springs[m].theta);
             spring_list.push_back(spring_points);
             spring_points.clear();
         }
@@ -51,7 +51,7 @@ cv::Point CerthGrasping::calculateSpringCenter(std::vector<cv::Point> &spring_po
 
 Vector3f CerthGrasping::calculateWorldCoordinates(cv::Point centroid)
 {
-    cvx::util::PinholeCamera cam(10179.87, 10154.06, 2464, 1632, cv::Size(4928, 3264));
+    cvx::util::PinholeCamera cam(fx, fy, cx, cy, cv::Size(size_x, size_y));
     Vector3f object_position_temp = cam.backProject(centroid.x, centroid.y, camera_matrix(2,3) - tray_height);
     Vector4f object_position_camera(object_position_temp.x(), object_position_temp.y(), object_position_temp.z(), 1);
     Vector4f object_position_world = camera_matrix * object_position_camera;
@@ -64,6 +64,34 @@ void CerthGrasping::calculateGripperPosition(Vector3f &gripper_position, Vector3
     gripper_position.x() = spring_position.x() - grasp_offset * cos(gripper_angle);
     gripper_position.y() = spring_position.y() - grasp_offset * sin(gripper_angle);
     gripper_position.z() = spring_position.z();
+}
+
+Vector3f CerthGrasping::matrixToEulerAngles()
+{
+    Matrix3f temp;
+
+    temp << camera_matrix(0, 0), camera_matrix(0, 1), camera_matrix(0, 2),
+            camera_matrix(1, 0), camera_matrix(1, 1), camera_matrix(1, 2),
+            camera_matrix(2, 0), camera_matrix(2, 1), camera_matrix(2, 2);
+
+    Vector3f ea = temp.eulerAngles(2, 1, 0);
+    std::cout << ea << std::endl;
+    return ea;
+}
+
+float CerthGrasping::calculateGraspingAngle(uint i)
+{
+    Matrix3f spring_to_camera = (AngleAxisf(-rotX[i], Eigen::Vector3f::UnitX())
+                               * AngleAxisf(rotY[i], Eigen::Vector3f::UnitY())
+                               * AngleAxisf(M_PI/2, Eigen::Vector3f::UnitY())).matrix();
+
+    Matrix3f camera_to_base = camera_matrix.block(0, 0, 2, 2);
+
+    Matrix3f spring_to_base = spring_to_camera * camera_to_base;
+
+    Vector3f ea = spring_to_base.eulerAngles(2, 1, 0);
+    std::cout << ea << std::endl;
+    return ea[0] + + M_PI/2;
 }
 
 
