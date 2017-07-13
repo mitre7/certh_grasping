@@ -29,8 +29,8 @@ public:
     CerthGrasping()
     : resize_ratio(0.75)
     , tray_height(0.52)
-    , height_offset(0.05)
-    , spring_radius(0.015)
+    , height_offset(0.10)
+    , spring_radius(0.018)
     , grasp_offset(0.012)
     , fx(10179.87), fy(10154.06), cx(2464), cy(1632), size_x(4928), size_y(3264)
     {
@@ -57,11 +57,13 @@ public:
 
     Vector3f matrixToEulerAngles();
     float calculateGraspingAngle(uint i);
+    float angleCorrection(float angle);
 
     void detectSprings();
     cv::Point calculateSpringCenter(std::vector<cv::Point> &spring_points);
     Vector3f calculateWorldCoordinates(cv::Point centroid);
-    void calculateGripperPosition(Vector3f &gripper_position, Vector3f spring_position, float gripper_angle);
+    Vector3f calculateGripperPosition(Vector3f spring_position, float gripper_angle);
 };
 
 #endif // CERTH_GRASPING_HPP
+

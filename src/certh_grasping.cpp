@@ -59,11 +59,13 @@ Vector3f CerthGrasping::calculateWorldCoordinates(cv::Point centroid)
     return Vector3f(object_position_world(0), object_position_world(1), object_position_world(2));
 }
 
-void CerthGrasping::calculateGripperPosition(Vector3f &gripper_position, Vector3f spring_position, float gripper_angle)
+Vector3f CerthGrasping::calculateGripperPosition(Vector3f spring_position, float gripper_angle)
 {
-    gripper_position.x() = spring_position.x() - grasp_offset * cos(gripper_angle);
+    Vector3f gripper_position;
+    gripper_position.x() = spring_position.x() + grasp_offset * cos(gripper_angle);
     gripper_position.y() = spring_position.y() - grasp_offset * sin(gripper_angle);
-    gripper_position.z() = spring_position.z();
+    gripper_position.z() = spring_position.z() + spring_radius;
+    return gripper_position;
 }
 
 Vector3f CerthGrasping::matrixToEulerAngles()
@@ -89,9 +91,19 @@ float CerthGrasping::calculateGraspingAngle(uint i)
 
     Matrix3f spring_to_base = (spring_to_camera * camera_to_base);
 
-    Vector3f ea = spring_to_base.eulerAngles(2, 0, 1);
+    Vector3f ea = spring_to_base.eulerAngles(2, 0, 1);   //ZXY rotation
     std::cout << ea * 180 / M_PI << std::endl;
-    return ea[0] + M_PI/2;
+    return ea[0] + M_PI/2;   //gripper perpendicular to the spring direction
+}
+
+float CerthGrasping::angleCorrection(float angle)
+{
+    if (angle > M_PI/2 && angle < 3*M_PI/2)
+        return angle - M_PI;
+    else if (angle < -M_PI/2 && angle > -3*M_PI/2)
+        return angle + M_PI;
+    else
+        return angle;
 }
 
 
