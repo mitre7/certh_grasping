@@ -87,11 +87,11 @@ float CerthGrasping::calculateGraspingAngle(uint i)
 
     Matrix3f camera_to_base = camera_matrix.block(0, 0, 2, 2);
 
-    Matrix3f spring_to_base = spring_to_camera * camera_to_base;
+    Matrix3f spring_to_base = (spring_to_camera * camera_to_base);
 
-    Vector3f ea = spring_to_base.eulerAngles(2, 1, 0);
-    std::cout << ea << std::endl;
-    return ea[0] + + M_PI/2;
+    Vector3f ea = spring_to_base.eulerAngles(2, 0, 1);
+    std::cout << ea * 180 / M_PI << std::endl;
+    return ea[0] + M_PI/2;
 }
 
 

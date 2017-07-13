@@ -29,7 +29,7 @@ public:
     CerthGrasping()
     : resize_ratio(0.75)
     , tray_height(0.52)
-    , height_offset(0.10)
+    , height_offset(0.05)
     , spring_radius(0.015)
     , grasp_offset(0.012)
     , fx(10179.87), fy(10154.06), cx(2464), cy(1632), size_x(4928), size_y(3264)
