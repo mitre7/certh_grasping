@@ -28,11 +28,11 @@ private:
 public:
     CerthGrasping()
     : resize_ratio(0.75)
-    , tray_height(0.52)
-    , height_offset(0.10)
-    , spring_radius(0.018)
-    , grasp_offset(0.012)
-    , fx(10179.87), fy(10154.06), cx(2464), cy(1632), size_x(4928), size_y(3264)
+    , tray_height(0.75)
+    , height_offset(0.05)
+    , spring_radius(0.019)
+    , grasp_offset(0.014)
+    , fx(8460.70), fy(8452.94), cx(2464), cy(1632), size_x(4928), size_y(3264)
     {
 
         spring_list.clear();
@@ -40,9 +40,9 @@ public:
         rotX.clear();
         rotY.clear();
 
-        camera_matrix <<  -0.0873767,    0.996173,  -0.0022065,    0.102225,
-                            0.996172,   0.0873817,  0.00228325,    -1.19153,
-                          0.00246732, -0.00199855,   -0.999995,     2.26495,
+        camera_matrix <<    0.999205,   0.0395858,  -0.0046684,     0.24137,
+                           0.0395596,   -0.999202, -0.00558069,   -0.985534,
+                         -0.00488559,  0.00539157,   -0.999974,     2.27777,
                                    0,           0,           0,           1;
 
     }
@@ -55,7 +55,7 @@ public:
     float height_offset;
     float spring_radius;
 
-    Vector3f matrixToEulerAngles();
+    Vector3f cameraMatrixToEulerAngles();
     float calculateGraspingAngle(uint i);
     float angleCorrection(float angle);
 
@@ -66,4 +66,5 @@ public:
 };
 
 #endif // CERTH_GRASPING_HPP
+
 
