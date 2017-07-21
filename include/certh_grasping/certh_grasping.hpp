@@ -24,14 +24,16 @@ private:
 
     float resize_ratio;
     float grasp_offset;
+    float gripper_height_offset;
 
 public:
     CerthGrasping()
     : resize_ratio(0.75)
-    , tray_height(0.75)
+    , tray_height(0.752)
     , height_offset(0.05)
-    , spring_radius(0.019)
-    , grasp_offset(0.014)
+    , spring_radius(0.008)
+    , grasp_offset(0.019)
+    , gripper_height_offset(0.005)
     , fx(8460.70), fy(8452.94), cx(2464), cy(1632), size_x(4928), size_y(3264)
     {
 
@@ -66,5 +68,6 @@ public:
 };
 
 #endif // CERTH_GRASPING_HPP
+
 
 

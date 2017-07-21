@@ -52,11 +52,11 @@ cv::Point CerthGrasping::calculateSpringCenter(std::vector<cv::Point> &spring_po
 Vector3f CerthGrasping::calculateWorldCoordinates(cv::Point centroid)
 {
     cvx::util::PinholeCamera cam(fx, fy, cx, cy, cv::Size(size_x, size_y));
-    Vector3f object_position_temp = cam.backProject(centroid.x, centroid.y, camera_matrix(2,3) - tray_height);
+    Vector3f object_position_temp = cam.backProject(centroid.x, centroid.y, camera_matrix(2,3) - tray_height - spring_radius);
     Vector4f object_position_camera(object_position_temp.x(), object_position_temp.y(), object_position_temp.z(), 1);
     Vector4f object_position_world = camera_matrix * object_position_camera;
 
-    return Vector3f(object_position_world(0), object_position_world(1), object_position_world(2));
+    return Vector3f(object_position_world(0), object_position_world(1), tray_height + spring_radius);
 }
 
 Vector3f CerthGrasping::calculateGripperPosition(Vector3f spring_position, float gripper_angle)
@@ -64,7 +64,7 @@ Vector3f CerthGrasping::calculateGripperPosition(Vector3f spring_position, float
     Vector3f gripper_position;
     gripper_position.x() = spring_position.x() + grasp_offset * cos(gripper_angle);
     gripper_position.y() = spring_position.y() - grasp_offset * sin(gripper_angle);
-    gripper_position.z() = spring_position.z() + spring_radius;
+    gripper_position.z() = spring_position.z() + gripper_height_offset /*+ 0.008*/;
     return gripper_position;
 }
 
@@ -91,7 +91,7 @@ float CerthGrasping::calculateGraspingAngle(uint i)
 
     Matrix3f spring_to_base = (spring_to_camera * camera_to_base);
 
-    Vector3f ea = spring_to_base.eulerAngles(2, 1, 0);   //ZXY rotation
+    Vector3f ea = spring_to_base.eulerAngles(2, 1, 0);   //ZYX rotation
     std::cout << ea * 180 / M_PI << std::endl;
     return ea[0] + M_PI/2;   //gripper perpendicular to the spring direction
 }
@@ -105,6 +105,7 @@ float CerthGrasping::angleCorrection(float angle)
     else
         return angle;
 }
+
 
 
 

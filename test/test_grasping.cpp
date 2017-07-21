@@ -108,16 +108,16 @@ int main (int argc, char *argv[])
             }
         }
 
-        ros::Duration(1).sleep();
+//        ros::Duration(1).sleep();
 
-        if ( !arm.planTipIK(Eigen::Vector3d(drop_position(0), drop_position(1), drop_position(2)), q, plan) ) {
-            cerr << "can't plan to location:" << Vector3d(drop_position(0), drop_position(1), drop_position(2)).adjoint() << endl ;
-        }
-        else {
-            if ( arm.execute(plan) ) {
-                cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl  ;
-            }
-        }
+//        if ( !arm.planTipIK(Eigen::Vector3d(drop_position(0), drop_position(1), drop_position(2)), q, plan) ) {
+//            cerr << "can't plan to location:" << Vector3d(drop_position(0), drop_position(1), drop_position(2)).adjoint() << endl ;
+//        }
+//        else {
+//            if ( arm.execute(plan) ) {
+//                cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl  ;
+//            }
+//        }
 
         ros::Duration(1).sleep();
 
