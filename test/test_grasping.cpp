@@ -111,7 +111,7 @@ int main (int argc, char *argv[])
         cout << "Move robot up?" << endl;
         cin.get();
 
-        if ( !arm.planTipIK(Eigen::Vector3d(gripper_position(0), gripper_position(1), gripper_position(2) + cg.pre_grasp_height_offset), q, plan) ) {
+        if ( !arm.planTipIK(Eigen::Vector3d(gripper_position(0), gripper_position(1), gripper_position(2) + cg.pre_grasp_height_offset + 0.4), q, plan) ) {
             cerr << "can't plan to location:" << Vector3d(gripper_position(0), gripper_position(1), gripper_position(2) + cg.pre_grasp_height_offset).adjoint() << endl ;
         }
         else {
@@ -120,7 +120,7 @@ int main (int argc, char *argv[])
             }
         }
 
-//        ros::Duration(1).sleep();
+        ros::Duration(1).sleep();
 
 //        if ( !arm.planTipIK(Eigen::Vector3d(drop_position(0), drop_position(1), drop_position(2)), q, plan) ) {
 //            cerr << "can't plan to location:" << Vector3d(drop_position(0), drop_position(1), drop_position(2)).adjoint() << endl ;
@@ -130,6 +130,18 @@ int main (int argc, char *argv[])
 //                cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl  ;
 //            }
 //        }
+
+
+        if ( !arm.planTipIK(Vector3d(-0.08, -0.84, 1.10), q, plan) )
+        {
+            cerr << "can't plan to location:" << endl;
+        }else
+        {
+            if ( arm.execute(plan) )
+            {
+                cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl  ;
+            }
+        }
 
         ros::Duration(1).sleep();
 
