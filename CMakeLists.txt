@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
     clopema_robot
     camera_helpers
     spring_detector
+    push_debris
 )
 
 

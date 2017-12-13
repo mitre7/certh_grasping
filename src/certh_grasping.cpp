@@ -42,6 +42,43 @@ void CerthGrasping::detectSprings()
     }
 }
 
+void CerthGrasping::push_debris_service_call(int x, int y, float spring_orientation, const cv::Mat &tray_image)
+{
+    ros::NodeHandle n;
+    push_debris_client = n.serviceClient<push_debris::PushDebris>("push_debris");
+
+    push_debris::PushDebris srv;
+
+    srv.request.x = x;
+    srv.request.y = y;
+    srv.request.orientation = spring_orientation ;
+
+    cv_bridge::CvImage cv_img(std_msgs::Header(), "bgr8", tray_image);
+    sensor_msgs::Image image;
+    cv_img.toImageMsg(image);
+    srv.request.img = image;
+
+    cout << "Calling service..." << endl;
+
+    if (push_debris_client.call(srv))
+    {
+        push_start_point_x = srv.response.x1;
+        push_start_point_y = srv.response.y1;
+        push_final_point_x = srv.response.x2;
+        push_final_point_y = srv.response.y2;
+        push_estimated_orientation = srv.response.push_orientation;
+    }
+
+}
+
+float CerthGrasping::findPushDirectionInCameraFrame()
+{
+    float push_direction = atan2((push_final_point_y - push_start_point_y), (push_final_point_x - push_start_point_x));
+
+    return push_direction + M_PI / 2;
+}
+
+
 cv::Point CerthGrasping::calculateSpringCenter(std::vector<cv::Point> &spring_points)
 {
     cv::Point centroid;
@@ -225,6 +262,82 @@ float CerthGrasping::cameraToBaseOrientation(float angle)
     Vector3f ea = object_to_base.eulerAngles(2, 1, 0);   // rotation
     std::cout << "object to base angle = " << ea[0] * 180 / M_PI << std::endl;
     return ea[0];   //gripper perpendicular to the object direction
+}
+
+bool CerthGrasping::pushDebris(float gripper_angle)
+{
+    string arm_name = "r1";
+    RobotArm arm(arm_name);
+    if (!arm.closeGripper()) return false;
+
+    arm.setRobotSpeed(0.8);
+
+    //TODO: move r2_arm to the position that r1_arm can move above the tray without collisions
+
+    Vector3f initial_point = calculateWorldCoordinates(cv::Point(push_start_point_x,push_start_point_y));
+    initial_point.z() += 0.01;
+    cout << "start point:(" << initial_point.x() << ", " << initial_point.y() << ", " << initial_point.z() << ")" << endl;
+
+    Vector3f final_point = calculateWorldCoordinates(cv::Point(push_final_point_x,push_final_point_y));
+    final_point.z() += 0.01;
+    cout << "final point:(" << final_point.x() << ", " << final_point.y() << ", " << final_point.z() << ")" << endl;
+
+    Quaterniond q = robot_helpers::lookAt(Vector3d(0, 0, -1), M_PI/2 - gripper_angle);
+
+    //move to pre-push position
+    RobotArm::Plan plan ;
+    if ( !arm.planTipIK(Vector3d(initial_point(0), initial_point(1), initial_point(2) + pre_grasp_height_offset), q, plan) )
+    {
+        cerr << "can't plan to location:" << Vector3d(initial_point(0), initial_point(1), initial_point(2) + pre_grasp_height_offset).adjoint() << endl ;
+        arm.moveHome();
+        return false;
+    }
+    else
+    {
+        if ( arm.execute(plan) )
+            cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl;
+    }
+
+    arm.setRobotSpeed(0.4);
+    ros::Duration(1).sleep();
+
+    //move to initial position
+    if ( !arm.planTipIK(Vector3d(initial_point(0), initial_point(1), initial_point(2)), q, plan) )
+    {
+        cerr << "can't plan to location:" << Vector3d(initial_point(0), initial_point(1), initial_point(2)).adjoint() << endl;
+        arm.moveHome();
+        return false;
+    }
+    else
+    {
+        if ( arm.execute(plan) )
+            cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl;
+    }
+
+    ros::Duration(1).sleep();
+
+    //push the debris away
+    if ( !arm.planTipIK(Vector3d(final_point(0), final_point(1), final_point(2)), q, plan) )
+    {
+        cerr << "can't plan to location:" << Vector3d(final_point(0), final_point(1), final_point(2)).adjoint() << endl;
+        arm.moveHome();
+        return false;
+    }
+    else
+    {
+//        ros::Duration(1).sleep();
+        if ( arm.execute(plan) )
+            cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl;
+    }
+
+    arm.setRobotSpeed(0.8);
+
+    while(!arm.moveHome())
+    {
+        ros::Duration(1).sleep();
+        cerr << "R1 cannot move to home position" << endl;
+    }
+    return true;
 }
 
 bool CerthGrasping::pushDebris(cv::Point start_point, float gripper_angle, float push_offset, int counter)
@@ -425,15 +538,13 @@ bool CerthGrasping::removeDebris()
             cv::imwrite("/tmp/spring_patch.png", im_patch);
             float spring_orientation = springToCameraOrientation(0); //spring orientation in the camera cs, the input parameter defines the i-th spring detected
 
-
-
             // call the push estimation function push(centroid, spring_orientation, rgb, mask!!!!!
-
+            push_debris_service_call(centroid.x, centroid.y, spring_orientation, rgb);
 
 
             //-------------------this code block is only for testing----------------
             cv::Point temp_point;
-
+/*
             float spring_orientation_corrected = spring_orientation - (M_PI / 2); // perpendicular to spring orientation
 
             if (counter == 0)
@@ -449,7 +560,23 @@ bool CerthGrasping::removeDebris()
                 cv::circle(rgb, temp_point, 4, cv::Scalar(0, 0, 0), 4);
             }
 
-            float push_orientation = spring_orientation; //just for testing, push orientatino would be different with the spring orientation
+*/
+//            float push_orientation = spring_orientation; //just for testing, push orientatino would be different with the spring orientation
+
+            cout << "Push estimated orientation = " << push_estimated_orientation * 180 / M_PI << endl;
+            float push_orientation = push_estimated_orientation;
+
+//            float push_direction_in_cam_frame = findPushDirectionInCameraFrame();
+//            cout << "Push orientation in camera frame = " << push_direction_in_cam_frame * 180 / M_PI << endl;
+//            float push_orientation = cameraToBaseOrientation(push_direction_in_cam_frame);
+
+            temp_point.x = push_start_point_x;
+            temp_point.y = push_start_point_y;
+            cv::circle(rgb, temp_point, 4, cv::Scalar(0, 0, 0), 4);
+
+            temp_point.x = push_final_point_x;
+            temp_point.y = push_final_point_y;
+            cv::circle(rgb, temp_point, 4, cv::Scalar(255, 0, 0), 4);
 
             cv::namedWindow("rgb", CV_WINDOW_NORMAL );
             cv::imshow( "rgb", rgb );
@@ -458,8 +585,12 @@ bool CerthGrasping::removeDebris()
 
             float gripper_angle = cameraToBaseOrientation(push_orientation); //tranform the rotation angle from camera cs to world reference
 
-            if (pushDebris(temp_point, gripper_angle, push_offset, counter))
-                counter = (counter) ? 0 : 1; //counter is used only for testing
+            if (pushDebris(gripper_angle))
+            {
+                cout << "Push was done correctly" << endl;
+            }
+//            if (pushDebris(temp_point, gripper_angle, push_offset, counter))
+//                counter = (counter) ? 0 : 1; //counter is used only for testing
             else //in case that pushDebris failed and the brush moved the spring, we re-detect the springs
             {
                 if (!getNewImage(rgb, mask))
@@ -485,7 +616,7 @@ bool CerthGrasping::removeDebris()
 
             if(spring_list.size() != 0)
             {
-                if (is_cluttered[0])
+                if (/*is_cluttered[0]*/ true)
                 {
                     cout << "Spring around debris! Move to next push" << endl << endl;
                     continue;

@@ -3,11 +3,14 @@
 
 #include <ros/ros.h>
 #include <spring_detector/springDetect.h>
+#include <push_debris/PushDebris.h>
+
 #include <robot_helpers/robot.hpp>
 #include <robot_helpers/geometry.hpp>
 
 #include <ros/node_handle.h>
 #include <image_transport/image_transport.h>
+#include <sensor_msgs/Image.h>
 #include <camera_helpers/gphoto2_capture.hpp>
 #include <cv_bridge/cv_bridge.h>
 
@@ -27,6 +30,7 @@ class CerthGrasping
 private:
     ros::NodeHandle nh_;
     ros::ServiceClient detect_spring_client;
+    ros::ServiceClient push_debris_client;
 
     image_transport::ImageTransport it;
     image_transport::Publisher image_pub;
@@ -41,9 +45,16 @@ private:
     int patch_offset; //width or height of image patch in pixels (patch containing a spring)
     float push_offset; //how far should the brush move to clean the neighboor
 
+    uint push_start_point_x;
+    uint push_start_point_y;
+    uint push_final_point_x;
+    uint push_final_point_y;
+    float push_estimated_orientation;
+
 public:
     CerthGrasping()
     : it(nh_)
+    , push_start_point_x(0), push_start_point_y(0), push_final_point_x(0), push_final_point_y(0), push_estimated_orientation(0)
     , resize_ratio(0.75)
     , tray_height(0.752)
     , pre_grasp_height_offset(0.05)
@@ -94,11 +105,16 @@ public:
     bool getNewImage(cv::Mat &rgb, const cv::Mat &mask);
     void findImagePatch(const cv::Mat &src, cv::Point center, int offset, cv::Mat &im_patch);
     float springToCameraOrientation(uint i);
-    bool pushDebris(cv::Point start_point, float push_orientation, float push_offset, int counter = 0);
+    bool pushDebris(float gripper_angle);
+    bool pushDebris(cv::Point start_point, float push_orientation, float push_offset, int counter = 0); //for testing
     float cameraToBaseOrientation(float angle);
 
     cv::Mat makeMask(const cv::Mat &src, cv::Point center, int offset);
     bool graspSpring(Vector3f gripper_position, float gripper_angle);
+
+    void push_debris_service_call(int x, int y, float spring_orientation, const cv::Mat &tray_image);
+
+    float findPushDirectionInCameraFrame();
 };
 
 #endif // CERTH_GRASPING_HPP

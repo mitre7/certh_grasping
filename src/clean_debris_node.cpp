@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include <certh_grasping/certh_grasping.hpp>
+#include <push_debris/PushDebris.h>
 
 int main (int argc, char *argv[])
 {
