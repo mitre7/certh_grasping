@@ -561,10 +561,10 @@ bool CerthGrasping::removeDebris()
             }
 
 */
-//            float push_orientation = spring_orientation; //just for testing, push orientatino would be different with the spring orientation
+            float push_orientation = spring_orientation; //just for testing, push orientatino would be different with the spring orientation
 
-            cout << "Push estimated orientation = " << push_estimated_orientation * 180 / M_PI << endl;
-            float push_orientation = push_estimated_orientation;
+//            cout << "Push estimated orientation = " << push_estimated_orientation * 180 / M_PI << endl;
+//            float push_orientation = push_estimated_orientation;
 
 //            float push_direction_in_cam_frame = findPushDirectionInCameraFrame();
 //            cout << "Push orientation in camera frame = " << push_direction_in_cam_frame * 180 / M_PI << endl;
