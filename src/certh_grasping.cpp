@@ -282,7 +282,9 @@ bool CerthGrasping::pushDebris(float gripper_angle)
     final_point.z() += 0.01;
     cout << "final point:(" << final_point.x() << ", " << final_point.y() << ", " << final_point.z() << ")" << endl;
 
-    Quaterniond q = robot_helpers::lookAt(Vector3d(0, 0, -1), M_PI/2 - gripper_angle);
+
+    cout << "Look at input = " << (M_PI/2 - gripper_angle) * 180 / M_PI << endl;
+    Quaterniond q = robot_helpers::lookAt(Vector3d(0, 0, -1), /*M_PI/2 -*/ -gripper_angle);
 
     //move to pre-push position
     RobotArm::Plan plan ;
@@ -561,10 +563,10 @@ bool CerthGrasping::removeDebris()
             }
 
 */
-            float push_orientation = spring_orientation; //just for testing, push orientatino would be different with the spring orientation
+//            float push_orientation = spring_orientation; //just for testing, push orientatino would be different with the spring orientation
 
-//            cout << "Push estimated orientation = " << push_estimated_orientation * 180 / M_PI << endl;
-//            float push_orientation = push_estimated_orientation;
+            cout << "Push estimated orientation = " << push_estimated_orientation * 180 / M_PI << endl;
+            float push_orientation = push_estimated_orientation;
 
 //            float push_direction_in_cam_frame = findPushDirectionInCameraFrame();
 //            cout << "Push orientation in camera frame = " << push_direction_in_cam_frame * 180 / M_PI << endl;

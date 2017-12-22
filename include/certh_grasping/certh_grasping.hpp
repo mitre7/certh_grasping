@@ -63,7 +63,7 @@ public:
     , gripper_height_offset(0.005)
     , patch_offset(600)
     , push_offset(0.05)
-    , gripper_opening_angle(0.5)
+    , gripper_opening_angle(0.3)
     , gripper_extra_height(0.006)
     , fx(8460.70), fy(8452.94), cx(2464), cy(1632), size_x(4928), size_y(3264)
     {
