@@ -50,6 +50,10 @@ private:
     uint push_final_point_x;
     uint push_final_point_y;
     float push_estimated_orientation;
+    bool is_cleared;
+
+    std::string camera_extrinsics, camera_intrinsics;
+    cvx::util::PinholeCamera cam ;
 
 public:
     CerthGrasping()
@@ -65,7 +69,8 @@ public:
     , push_offset(0.05)
     , gripper_opening_angle(0.3)
     , gripper_extra_height(0.006)
-    , fx(8460.70), fy(8452.94), cx(2464), cy(1632), size_x(4928), size_y(3264)
+    //, fx(8460.70), fy(8452.94), cx(2464), cy(1632), size_x(4928), size_y(3264)
+    , size_x(4928), size_y(3264)
     {
 
         image_pub = it.advertise("camera/Image", 1);
@@ -75,11 +80,37 @@ public:
         rotX.clear();
         rotY.clear();
         is_cluttered.clear();
-
+/*
         camera_matrix <<    0.999205,   0.0395858,  -0.0046684,     0.24137,
                            0.0395596,   -0.999202, -0.00558069,   -0.985534,
                          -0.00488559,  0.00539157,   -0.999974,     2.27777,
                                    0,           0,           0,           1;
+
+*/	
+	
+	//camera_intrinsics = getenv("HOME") + std::string("/.ros/calibration_data_intrinsics/camera.xml");
+	camera_intrinsics = getenv("HOME") + std::string("/roso_review/calib_camera_intrinsics/camera.xml");
+	if  ( !cam.read(camera_intrinsics) ) {
+           cerr << "can't read intrinsics from: " << camera_intrinsics << endl ;
+           exit(1) ;
+    	}
+	else
+	{
+	   fx = cam.fx();
+	   fy = cam.fy();
+	   cx = cam.cx();
+	   cy = cam.cy();
+	}
+
+	//camera_extrinsics = getenv("HOME") + std::string("/.ros/calibration_data/pose.txt");
+	camera_extrinsics = getenv("HOME") + std::string("/roso_review/calib_camera_extrinsics/pose.txt");	
+        std::ifstream strm(camera_extrinsics.c_str());
+        for(int i=0;i<4;i++)
+ 	   for(int j=0;j<4;j++)
+	      strm >> camera_matrix(i,j);
+
+	std::cout << "camera matrix:" << camera_matrix << std::endl;
+	std::cout << fx << " " << fy << " " << cx << " " << cy << std::endl;
 
     }
 

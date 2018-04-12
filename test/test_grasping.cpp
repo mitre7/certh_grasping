@@ -68,6 +68,9 @@ int main (int argc, char *argv[])
         else
             cout << "Spring free of debris" << endl;
 
+	cout << "Grasp spring?" << endl;
+        cin.get();
+
         if (!arm.closeGripper()) continue;
 
         RobotArm::Plan plan ;
