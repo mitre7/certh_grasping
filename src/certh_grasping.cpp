@@ -281,17 +281,25 @@ bool CerthGrasping::pushDebris(float gripper_angle)
     //TODO: move r2_arm to the position that r1_arm can move above the tray without collisions
     std::cout << "begin pushing" << std::endl;
 
+    double z_offset = 0.0235;
+    //double y_offset = 0.0135;
+    //double x_offset = 0.013;
     Vector3f initial_point = calculateWorldCoordinates(cv::Point(push_start_point_x,push_start_point_y));
-    initial_point.z() += 0.01;
+    initial_point.z() += z_offset;
+    //initial_point.y() += y_offset;
+    //initial_point.x() += x_offset;
     cout << "start point:(" << initial_point.x() << ", " << initial_point.y() << ", " << initial_point.z() << ")" << endl;
 
     Vector3f final_point = calculateWorldCoordinates(cv::Point(push_final_point_x,push_final_point_y));
-    final_point.z() += 0.01;
+    final_point.z() += z_offset;
+    //final_point.y() += y_offset;
+    //final_point.x() += x_offset;
+
     cout << "final point:(" << final_point.x() << ", " << final_point.y() << ", " << final_point.z() << ")" << endl;
 
 
     cout << "Look at input = " << (M_PI/2 - gripper_angle) * 180 / M_PI << endl;
-    Quaterniond q = robot_helpers::lookAt(Vector3d(0, 0, -1), /*M_PI/2 -*/ -gripper_angle);
+    Quaterniond q = robot_helpers::lookAt(Vector3d(0, 0, -1), /*M_PI/2 -*/ -gripper_angle+M_PI);
     cout << pre_grasp_height_offset << std::endl;
 
     //move to pre-push position
@@ -304,13 +312,9 @@ bool CerthGrasping::pushDebris(float gripper_angle)
     }
     else
     {
-        auto start = std::chrono::high_resolution_clock::now();
         if ( arm.execute(plan) )
         {
             cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl;
-            auto finish = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> elapsed = finish - start;
-            std::cout << "Elapsed time for robot move: " << elapsed.count() << " s\n";
         }
     }
 
@@ -326,13 +330,9 @@ bool CerthGrasping::pushDebris(float gripper_angle)
     }
     else
     {
-        auto start = std::chrono::high_resolution_clock::now();
         if ( arm.execute(plan) )
         {
             cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl;
-            auto finish = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> elapsed = finish - start;
-            std::cout << "Elapsed time for robot move: " << elapsed.count() << " s\n";
         }
     }
 
@@ -348,28 +348,20 @@ bool CerthGrasping::pushDebris(float gripper_angle)
     else
     {
 //        ros::Duration(1).sleep();
-        auto start = std::chrono::high_resolution_clock::now();
         if ( arm.execute(plan) )
         {
             cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl;
-            auto finish = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> elapsed = finish - start;
-            std::cout << "Elapsed time for robot move: " << elapsed.count() << " s\n";
         }
     }
 
     arm.setRobotSpeed(0.8);
 
-    auto start = std::chrono::high_resolution_clock::now();
     while(!arm.moveHome())
     {
         ros::Duration(1).sleep();
         cerr << "R1 cannot move to home position" << endl;
     }
 
-    auto finish = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = finish - start;
-    std::cout << "Elapsed time for robot move home: " << elapsed.count() << " s\n";
     return true;
 }
 
@@ -420,7 +412,6 @@ bool CerthGrasping::pushDebris(cv::Point start_point, float gripper_angle, float
             cout << "tip at: " << arm.getTipPose().translation().adjoint() <<endl;
             auto finish = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> elapsed = finish - start;
-            std::cout << "Elapsed time for robot move: " << elapsed.count() << " s\n";
         }
 
     }
@@ -478,6 +469,7 @@ bool CerthGrasping::graspSpring(Vector3f gripper_position, float gripper_angle)
     RobotArm::Plan plan ;
     if ( !arm.planTipIK(Eigen::Vector3d(gripper_position(0), gripper_position(1), gripper_position(2) + pre_grasp_height_offset), q, plan) ) {
         cerr << "can't plan to location:" << Vector3d(gripper_position(0), gripper_position(1), gripper_position(2) + pre_grasp_height_offset).adjoint() << endl ;
+        return false;
     }
     else
     {
@@ -495,13 +487,14 @@ bool CerthGrasping::graspSpring(Vector3f gripper_position, float gripper_angle)
     if (!gripper.changeGripperState(gripper_opening_angle)) return false;
 
     cout << "Move robot down?" << endl;
-    //cin.get();
+    cin.get();
 
     ros::Duration(1).sleep();
 
     auto start = std::chrono::high_resolution_clock::now();
     if ( !arm.planTipIK(Eigen::Vector3d(gripper_position(0), gripper_position(1), gripper_position(2) + gripper_height_offset), q, plan) ) {
         cerr << "can't plan to location:" << Vector3d(gripper_position(0), gripper_position(1), gripper_position(2) + gripper_height_offset).adjoint() << endl ;
+        return false;
     }
     else {
         if ( arm.execute(plan) )
@@ -516,7 +509,7 @@ bool CerthGrasping::graspSpring(Vector3f gripper_position, float gripper_angle)
     std::cout << "Elapsed time for robot move: " << elapsed.count() << " s\n";
 
     cout << "Move robot up?" << endl;
-    //cin.get();
+    cin.get();
 
     if ( !arm.planTipIK(Eigen::Vector3d(gripper_position(0), gripper_position(1), gripper_position(2) + pre_grasp_height_offset), q, plan) ) {
         cerr << "can't plan to location:" << Vector3d(gripper_position(0), gripper_position(1), gripper_position(2) + pre_grasp_height_offset).adjoint() << endl ;
@@ -597,11 +590,19 @@ bool CerthGrasping::removeDebris()
 
             // call the push estimation function push(centroid, spring_orientation, rgb, mask!!!!!
             push_debris_service_call(centroid.x, centroid.y, spring_orientation, rgb);
-            cout << "is cleared:" <<  is_cleared << endl;
+            cout << "Debris is cleared:" <<  is_cleared << endl;
             if(spring_list.size() != 0)
             {
                 if (is_cleared == true)
                 {
+                    std::cout << "Press enter to remve debris for next spring" << std::endl;
+                    cin.get();
+                    run_detection = true;
+                    mask.release();
+                    std::cout << "Cleaning debris..." << std::endl;
+                    break;
+
+                    /*
                     cv::Point new_centroid = calculateSpringCenter(spring_list[0]);
                     Vector3f new_spring_position_world = calculateWorldCoordinates(new_centroid);
 
@@ -613,18 +614,24 @@ bool CerthGrasping::removeDebris()
 
                     if (graspSpring(new_spring_position_world, grasp_gripper_angle))
                     {
-                        cout << "Pushes = "<< counter << endl;
+                        //cout << "Pushes = "<< counter << endl;
                         run_detection = true;
                         mask.release();
                         break;
                     }
                     else
                     {
-                        cout << "Spring clean of debris" << endl;
-                        continue;
+                        cout << "can't grasp spring, move to the next one" << std::endl;
+                        run_detection = true;
+                        mask.release();
+                        break;
+
+                        //cout << "Spring clean of debris" << endl;
+                        //continue;
     //                    cout << "Spring clean of debris" << endl;
     //                    break;
                     }
+                    */
                 }
                 else
                 {

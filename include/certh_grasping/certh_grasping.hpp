@@ -35,7 +35,7 @@ private:
     image_transport::ImageTransport it;
     image_transport::Publisher image_pub;
 
-    Matrix4f camera_matrix;
+    Matrix4f camera_matrix, temp;
     double fx, fy, cx, cy, size_x, size_y;
 
     float resize_ratio;
@@ -88,8 +88,8 @@ public:
 
 */	
 	
-	//camera_intrinsics = getenv("HOME") + std::string("/.ros/calibration_data_intrinsics/camera.xml");
-	camera_intrinsics = getenv("HOME") + std::string("/roso_review/calib_camera_intrinsics/camera.xml");
+	camera_intrinsics = getenv("HOME") + std::string("/.ros/calibration_data_intrinsics/camera.xml");
+	//camera_intrinsics = getenv("HOME") + std::string("/roso_review/calib_camera_intrinsics/camera.xml");
 	if  ( !cam.read(camera_intrinsics) ) {
            cerr << "can't read intrinsics from: " << camera_intrinsics << endl ;
            exit(1) ;
@@ -102,13 +102,14 @@ public:
 	   cy = cam.cy();
 	}
 
-	//camera_extrinsics = getenv("HOME") + std::string("/.ros/calibration_data/pose.txt");
-	camera_extrinsics = getenv("HOME") + std::string("/roso_review/calib_camera_extrinsics/pose.txt");	
+	camera_extrinsics = getenv("HOME") + std::string("/.ros/calibration_data/pose.txt");
+	//camera_extrinsics = getenv("HOME") + std::string("/roso_review/calib_camera_extrinsics/pose.txt");	
         std::ifstream strm(camera_extrinsics.c_str());
         for(int i=0;i<4;i++)
  	   for(int j=0;j<4;j++)
-	      strm >> camera_matrix(i,j);
+	      strm >> temp(i,j);
 
+	camera_matrix = temp.inverse();
 	std::cout << "camera matrix:" << camera_matrix << std::endl;
 	std::cout << fx << " " << fy << " " << cx << " " << cy << std::endl;
 
