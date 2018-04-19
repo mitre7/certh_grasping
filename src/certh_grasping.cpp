@@ -595,23 +595,25 @@ bool CerthGrasping::removeDebris()
             {
                 if (is_cleared == true)
                 {
-                    std::cout << "Press enter to remve debris for next spring" << std::endl;
-                    cin.get();
-                    run_detection = true;
-                    mask.release();
-                    std::cout << "Cleaning debris..." << std::endl;
-                    break;
 
-                    /*
+
+
                     cv::Point new_centroid = calculateSpringCenter(spring_list[0]);
                     Vector3f new_spring_position_world = calculateWorldCoordinates(new_centroid);
 
                     float grasp_gripper_angle = calculateGraspingAngle(0);
                     grasp_gripper_angle = angleCorrection(grasp_gripper_angle);
 
+                    std::cout << "Press enter to remove debris for next spring" << std::endl;
+                    cin.get();
+                    run_detection = true;
+                    mask.release();
+                    std::cout << "Cleaning debris..." << std::endl;
+                    break;
+
     //                    Vector3f gripper_position;
     //                    gripper_position = calculateGripperPosition(new_spring_position_world, grasp_gripper_angle, false);
-
+/*
                     if (graspSpring(new_spring_position_world, grasp_gripper_angle))
                     {
                         //cout << "Pushes = "<< counter << endl;
